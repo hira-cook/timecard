@@ -302,6 +302,7 @@
     return (neg?"-":"") + (h ? h + "時間" + pad(m) + "分" : m + "分");
   }
   function dec(min){ return (Math.max(0,min)/60).toFixed(2); }
+  function hhmm(min){ min = Math.max(0, Math.round(min)); return pad(Math.floor(min/60)) + ":" + pad(min%60); }
 
   /* ---------- calculation ---------- */
   var NIGHT = [[0,300],[1320,1740],[2760,3180]];   // 0:00-5:00, 22:00-翌5:00, 翌22:00-翌々5:00
@@ -572,18 +573,18 @@
   /* ---------- CSV ---------- */
   function buildCSV(ym){
     var days = daysOf(ym), keys = Object.keys(days).sort();
-    var lines = ["日付,曜日,出勤,退勤,休憩(分),実働(時間),深夜(時間)"];
+    var lines = ["日付,曜日,出勤,退勤,休憩,実働,深夜"];
     var tw = 0, tn = 0, tb = 0, n = 0;
     for(var i=0;i<keys.length;i++){
       var k = keys[i], rec = days[k];
       if(!rec || !rec["in"]) continue;
       var c = calc(rec, null), d = dateOf(k);
       if(c.work == null) continue;
-      lines.push([k, WD[d.getDay()], rec["in"], rec.out || "", c.brk,
-                  dec(c.work), dec(c.night)].join(","));
+      lines.push([k, WD[d.getDay()], rec["in"], rec.out || "", hhmm(c.brk),
+                  hhmm(c.work), hhmm(c.night)].join(","));
       tw += c.work; tn += c.night; tb += c.brk; n++;
     }
-    lines.push(["合計", n + "日", "", "", tb, dec(tw), dec(tn)].join(","));
+    lines.push(["合計", n + "日", "", "", hhmm(tb), hhmm(tw), hhmm(tn)].join(","));
     return "﻿" + lines.join("\r\n") + "\r\n";
   }
   // iPhone では共有シート（メール・ファイル・LINE …）、PC では通常のダウンロード
